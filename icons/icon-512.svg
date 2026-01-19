@@ -1,0 +1,7 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="512" height="512" viewBox="0 0 512 512">
+  <rect width="512" height="512" fill="#000"/>
+  <circle cx="145" cy="256" r="70" fill="#fff"/>
+  <circle cx="367" cy="256" r="70" fill="#e53935"/>
+  <text x="145" y="275" text-anchor="middle" font-family="Arial, sans-serif" font-size="55" font-weight="bold" fill="#000">PB</text>
+  <text x="367" y="275" text-anchor="middle" font-family="Arial, sans-serif" font-size="50" font-weight="bold" fill="#fff">!</text>
+</svg>
