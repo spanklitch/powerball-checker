@@ -51,19 +51,57 @@ document.addEventListener('DOMContentLoaded', () => {
     registerServiceWorker();
 });
 
+// All inputs in order for auto-advance
+const allInputs = [...userInputs.white, userInputs.powerball];
+
 // Setup event listeners
 function setupEventListeners() {
     saveBtn.addEventListener('click', saveUserNumbers);
 
-    // Input validation for white balls (1-69)
-    userInputs.white.forEach(input => {
-        input.addEventListener('change', () => validateInput(input, 1, 69));
-        input.addEventListener('blur', () => validateInput(input, 1, 69));
-    });
+    // Setup auto-advance for all inputs
+    allInputs.forEach((input, index) => {
+        const maxValue = parseInt(input.dataset.max);
 
-    // Input validation for PowerBall (1-26)
-    userInputs.powerball.addEventListener('change', () => validateInput(userInputs.powerball, 1, 26));
-    userInputs.powerball.addEventListener('blur', () => validateInput(userInputs.powerball, 1, 26));
+        // Handle input - auto advance when 2 digits entered
+        input.addEventListener('input', (e) => {
+            // Only allow digits
+            input.value = input.value.replace(/[^0-9]/g, '');
+
+            // When 2 digits are entered, validate and advance
+            if (input.value.length === 2) {
+                const value = parseInt(input.value);
+
+                // Validate range
+                if (value < 1 || value > maxValue) {
+                    input.value = '';
+                    return;
+                }
+
+                // Auto-advance to next input or highlight save button
+                if (index < allInputs.length - 1) {
+                    allInputs[index + 1].focus();
+                    allInputs[index + 1].select();
+                } else {
+                    // Last field (PowerBall) filled - highlight save button
+                    checkAllFieldsFilled();
+                }
+            }
+        });
+
+        // On blur, pad single digits and validate
+        input.addEventListener('blur', () => {
+            if (input.value.length === 1) {
+                input.value = '0' + input.value;
+            }
+            validateInput(input, 1, maxValue);
+            checkAllFieldsFilled();
+        });
+
+        // Select all on focus for easy editing
+        input.addEventListener('focus', () => {
+            input.select();
+        });
+    });
 }
 
 // Validate input within range
@@ -72,7 +110,24 @@ function validateInput(input, min, max) {
     if (isNaN(value) || value < min) {
         input.value = '';
     } else if (value > max) {
-        input.value = max;
+        input.value = '';
+    } else {
+        // Pad to 2 digits
+        input.value = value.toString().padStart(2, '0');
+    }
+}
+
+// Check if all fields are filled and highlight save button
+function checkAllFieldsFilled() {
+    const allFilled = allInputs.every(input => {
+        const value = parseInt(input.value);
+        return !isNaN(value) && value >= 1;
+    });
+
+    if (allFilled) {
+        saveBtn.classList.add('highlight');
+    } else {
+        saveBtn.classList.remove('highlight');
     }
 }
 
@@ -100,6 +155,7 @@ function saveUserNumbers() {
     };
 
     localStorage.setItem('powerball_user_numbers', JSON.stringify(userNumbers));
+    saveBtn.classList.remove('highlight');
     showResult('Numbers saved!', 'saved');
 
     // Re-check against current drawing
@@ -117,9 +173,9 @@ function loadUserNumbers() {
     if (saved) {
         const userNumbers = JSON.parse(saved);
         userNumbers.white.forEach((num, i) => {
-            userInputs.white[i].value = num || '';
+            userInputs.white[i].value = num ? num.toString().padStart(2, '0') : '';
         });
-        userInputs.powerball.value = userNumbers.powerball || '';
+        userInputs.powerball.value = userNumbers.powerball ? userNumbers.powerball.toString().padStart(2, '0') : '';
     }
 }
 

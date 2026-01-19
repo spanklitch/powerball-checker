@@ -20,8 +20,12 @@ body {
 
 .title {
     margin-bottom: 30px;
-    font-size: 2rem;
     line-height: 1.2;
+}
+
+.title .title-main {
+    display: block;
+    font-size: 2.5rem;
 }
 
 .title .power {
@@ -138,6 +142,22 @@ input.power-ball::placeholder {
 
 .save-btn:active {
     transform: scale(0.98);
+}
+
+.save-btn.highlight {
+    animation: pulse-btn 0.8s ease-in-out infinite;
+    box-shadow: 0 0 20px 5px rgba(255, 215, 0, 0.6);
+}
+
+@keyframes pulse-btn {
+    0%, 100% {
+        transform: scale(1);
+        box-shadow: 0 0 20px 5px rgba(255, 215, 0, 0.6);
+    }
+    50% {
+        transform: scale(1.05);
+        box-shadow: 0 0 30px 10px rgba(255, 215, 0, 0.8);
+    }
 }
 
 .drawing-date {
