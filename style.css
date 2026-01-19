@@ -28,14 +28,18 @@ body {
     font-size: 2.5rem;
 }
 
+.title .power,
+.title .ball {
+    display: inline;
+    font-weight: 700;
+}
+
 .title .power {
     color: #fff;
-    font-weight: 700;
 }
 
 .title .ball {
     color: #e53935;
-    font-weight: 700;
 }
 
 .title .find-me {
