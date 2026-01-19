@@ -1,0 +1,55 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
+    <meta name="theme-color" content="#000000">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="black">
+    <meta name="apple-mobile-web-app-title" content="PowerBall Find Me!">
+    <title>PowerBall Find Me!</title>
+    <link rel="stylesheet" href="style.css">
+    <link rel="manifest" href="manifest.json">
+    <link rel="apple-touch-icon" href="icons/icon-192.svg">
+</head>
+<body>
+    <div class="container">
+        <h1 class="title">
+            <span class="power">Power</span><span class="ball">Ball</span>
+            <span class="find-me">Find Me!</span>
+        </h1>
+
+        <section class="your-numbers">
+            <h2>Your Winning Numbers</h2>
+            <div class="number-row">
+                <input type="number" class="ball white-ball" id="user1" min="1" max="69" placeholder="--">
+                <input type="number" class="ball white-ball" id="user2" min="1" max="69" placeholder="--">
+                <input type="number" class="ball white-ball" id="user3" min="1" max="69" placeholder="--">
+                <input type="number" class="ball white-ball" id="user4" min="1" max="69" placeholder="--">
+                <input type="number" class="ball white-ball" id="user5" min="1" max="69" placeholder="--">
+                <input type="number" class="ball power-ball" id="userPB" min="1" max="26" placeholder="--">
+            </div>
+            <button id="saveBtn" class="save-btn">Save My Numbers</button>
+        </section>
+
+        <section class="last-drawing">
+            <h2>Last Drawing</h2>
+            <p class="drawing-date" id="drawingDate">Loading...</p>
+            <div class="number-row">
+                <div class="ball white-ball display" id="win1">--</div>
+                <div class="ball white-ball display" id="win2">--</div>
+                <div class="ball white-ball display" id="win3">--</div>
+                <div class="ball white-ball display" id="win4">--</div>
+                <div class="ball white-ball display" id="win5">--</div>
+                <div class="ball power-ball display" id="winPB">--</div>
+            </div>
+        </section>
+
+        <section class="result" id="resultSection">
+            <p id="resultText">Enter your numbers above</p>
+        </section>
+    </div>
+
+    <script src="app.js"></script>
+</body>
+</html>
