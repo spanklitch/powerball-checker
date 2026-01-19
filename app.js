@@ -1,8 +1,7 @@
 // PowerBall Find Me! - Main Application Logic
 
-// CORS proxy to fetch PowerBall results page
-const CORS_PROXY = 'https://api.allorigins.win/get?url=';
-const POWERBALL_URL = 'https://www.powerball.com/previous-results';
+// NY State Open Data API - Socrata format (returns current data)
+const API_URL = 'https://data.ny.gov/resource/d6yy-54nr.json?$order=draw_date%20DESC&$limit=1';
 
 // Prize structure (without Power Play)
 const PRIZES = {
@@ -181,24 +180,29 @@ function loadUserNumbers() {
     }
 }
 
-// Fetch latest drawing from PowerBall.com via CORS proxy
+// Fetch latest drawing from NY State Open Data API
 async function fetchLatestDrawing() {
     drawingDateEl.classList.add('loading');
     drawingDateEl.textContent = 'Loading...';
 
     try {
-        const response = await fetch(CORS_PROXY + encodeURIComponent(POWERBALL_URL));
+        const response = await fetch(API_URL);
         if (!response.ok) throw new Error('Network response was not ok');
 
         const data = await response.json();
-        const html = data.contents;
 
-        // Parse the HTML to extract the latest drawing
-        const drawing = parseDrawingFromHTML(html);
+        // API returns array with latest drawing first
+        // Format: { draw_date: "2026-01-17T00:00:00.000", winning_numbers: "05 08 27 49 57 14", multiplier: "4" }
+        const latest = data[0];
+        const drawDate = latest.draw_date;
+        const winningNumbersStr = latest.winning_numbers;
 
-        if (!drawing) {
-            throw new Error('Could not parse drawing data');
-        }
+        const numbers = winningNumbersStr.split(' ').map(n => parseInt(n));
+        const drawing = {
+            date: drawDate,
+            white: numbers.slice(0, 5),
+            powerball: numbers[5]
+        };
 
         // Cache the drawing
         localStorage.setItem('powerball_last_drawing', JSON.stringify(drawing));
@@ -221,112 +225,6 @@ async function fetchLatestDrawing() {
             drawingDateEl.textContent = 'Unable to load';
             showResult('Could not fetch drawing results', 'error');
         }
-    }
-}
-
-// Parse drawing data from PowerBall.com HTML
-function parseDrawingFromHTML(html) {
-    try {
-        const parser = new DOMParser();
-        const doc = parser.parseFromString(html, 'text/html');
-
-        // Find the first drawing card (most recent)
-        // The page has cards with class containing draw info
-        // Look for the date and numbers in the first result
-
-        // Try to find date - usually in a heading or time element
-        let dateText = null;
-        let whiteBalls = [];
-        let powerball = null;
-
-        // Look for the first card with drawing info
-        // PowerBall.com uses various class names, so we search for patterns
-
-        // Method 1: Look for structured data with numbers
-        const allText = html;
-
-        // Find date pattern like "Sat, Jan 17, 2026" or "January 17, 2026"
-        const dateMatch = allText.match(/(?:Mon|Tue|Wed|Thu|Fri|Sat|Sun),?\s+(?:Jan|Feb|Mar|Apr|May|Jun|Jul|Aug|Sep|Oct|Nov|Dec)\s+\d{1,2},?\s+\d{4}/i);
-        if (dateMatch) {
-            dateText = dateMatch[0];
-        }
-
-        // Find the winning numbers - they appear as individual digits in the HTML
-        // Look for a pattern of 5 numbers followed by a powerball
-        // The numbers are typically in elements with specific classes
-
-        // Try to find numbers in the content
-        // PowerBall shows numbers like: 5, 8, 27, 49, 57 with Powerball 14
-        const numbersSection = html.match(/white-balls[^>]*>[\s\S]*?<\/div>/i);
-
-        if (numbersSection) {
-            const nums = numbersSection[0].match(/\d+/g);
-            if (nums && nums.length >= 5) {
-                whiteBalls = nums.slice(0, 5).map(n => parseInt(n));
-            }
-        }
-
-        // Look for powerball number
-        const pbSection = html.match(/powerball[^>]*>[\s\S]*?<\/div>/i);
-        if (pbSection) {
-            const pbNums = pbSection[0].match(/\d+/g);
-            if (pbNums && pbNums.length > 0) {
-                powerball = parseInt(pbNums[0]);
-            }
-        }
-
-        // Fallback: try to find any sequence of 6 numbers that looks like lottery numbers
-        if (whiteBalls.length !== 5 || !powerball) {
-            // Look for patterns like "5 8 27 49 57 14" or similar
-            const numPattern = html.match(/(\d{1,2})\s*[,\s]\s*(\d{1,2})\s*[,\s]\s*(\d{1,2})\s*[,\s]\s*(\d{1,2})\s*[,\s]\s*(\d{1,2})\s*[,\s]\s*(?:Powerball:?\s*)?(\d{1,2})/i);
-            if (numPattern) {
-                whiteBalls = [
-                    parseInt(numPattern[1]),
-                    parseInt(numPattern[2]),
-                    parseInt(numPattern[3]),
-                    parseInt(numPattern[4]),
-                    parseInt(numPattern[5])
-                ];
-                powerball = parseInt(numPattern[6]);
-            }
-        }
-
-        // If we still don't have numbers, try another approach
-        if (whiteBalls.length !== 5 || !powerball) {
-            // Look for individual number elements
-            const doc = parser.parseFromString(html, 'text/html');
-            const allSpans = doc.querySelectorAll('span, div');
-            const potentialNumbers = [];
-
-            allSpans.forEach(el => {
-                const text = el.textContent.trim();
-                if (/^\d{1,2}$/.test(text)) {
-                    const num = parseInt(text);
-                    if (num >= 1 && num <= 69) {
-                        potentialNumbers.push(num);
-                    }
-                }
-            });
-
-            // Take first 6 unique-ish numbers as a guess
-            if (potentialNumbers.length >= 6 && whiteBalls.length !== 5) {
-                whiteBalls = potentialNumbers.slice(0, 5);
-                powerball = potentialNumbers[5];
-            }
-        }
-
-        if (dateText && whiteBalls.length === 5 && powerball) {
-            return {
-                date: dateText,
-                white: whiteBalls,
-                powerball: powerball
-            };
-        }
-
-        return null;
-    } catch (e) {
-        console.error('Error parsing HTML:', e);
-        return null;
     }
 }
 
