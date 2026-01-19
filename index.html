@@ -15,19 +15,19 @@
 <body>
     <div class="container">
         <h1 class="title">
-            <span class="power">Power</span><span class="ball">Ball</span>
+            <span class="title-main"><span class="power">Power</span><span class="ball">Ball</span></span>
             <span class="find-me">Find Me!</span>
         </h1>
 
         <section class="your-numbers">
             <h2>Your Winning Numbers</h2>
             <div class="number-row">
-                <input type="number" class="ball white-ball" id="user1" min="1" max="69" placeholder="--">
-                <input type="number" class="ball white-ball" id="user2" min="1" max="69" placeholder="--">
-                <input type="number" class="ball white-ball" id="user3" min="1" max="69" placeholder="--">
-                <input type="number" class="ball white-ball" id="user4" min="1" max="69" placeholder="--">
-                <input type="number" class="ball white-ball" id="user5" min="1" max="69" placeholder="--">
-                <input type="number" class="ball power-ball" id="userPB" min="1" max="26" placeholder="--">
+                <input type="text" inputmode="numeric" pattern="[0-9]*" maxlength="2" class="ball white-ball" id="user1" placeholder="--" data-max="69">
+                <input type="text" inputmode="numeric" pattern="[0-9]*" maxlength="2" class="ball white-ball" id="user2" placeholder="--" data-max="69">
+                <input type="text" inputmode="numeric" pattern="[0-9]*" maxlength="2" class="ball white-ball" id="user3" placeholder="--" data-max="69">
+                <input type="text" inputmode="numeric" pattern="[0-9]*" maxlength="2" class="ball white-ball" id="user4" placeholder="--" data-max="69">
+                <input type="text" inputmode="numeric" pattern="[0-9]*" maxlength="2" class="ball white-ball" id="user5" placeholder="--" data-max="69">
+                <input type="text" inputmode="numeric" pattern="[0-9]*" maxlength="2" class="ball power-ball" id="userPB" placeholder="--" data-max="26">
             </div>
             <button id="saveBtn" class="save-btn">Save My Numbers</button>
         </section>
