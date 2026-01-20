@@ -1,10 +1,11 @@
-const CACHE_NAME = 'powerball-v4';
+const CACHE_NAME = 'powerball-v5';
 const urlsToCache = [
     '/powerball-checker/',
     '/powerball-checker/index.html',
     '/powerball-checker/help.html',
     '/powerball-checker/style.css',
     '/powerball-checker/app.js',
+    '/powerball-checker/confetti.js',
     '/powerball-checker/manifest.json',
     '/powerball-checker/icons/icon-192.svg',
     '/powerball-checker/icons/icon-512.svg'

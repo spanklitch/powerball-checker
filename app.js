@@ -16,6 +16,9 @@ const PRIZES = {
     '0+PB': '$4'
 };
 
+// Prizes worth $100 or more (trigger confetti)
+const BIG_WIN_PRIZES = ['JACKPOT', '$1,000,000', '$50,000', '$100'];
+
 // DOM Elements
 const userInputs = {
     white: [
@@ -180,8 +183,83 @@ function loadUserNumbers() {
     }
 }
 
+// Check if we should fetch new data based on drawing schedule
+// Drawings: Mon, Wed, Sat at 10:59 PM ET, results available by 11:25 PM ET
+function shouldFetchNewData() {
+    const lastFetch = localStorage.getItem('powerball_last_fetch');
+    const cachedDrawing = localStorage.getItem('powerball_last_drawing');
+
+    // Always fetch if no cached data
+    if (!cachedDrawing || !lastFetch) {
+        return true;
+    }
+
+    const now = new Date();
+    const lastFetchTime = new Date(parseInt(lastFetch));
+
+    // Get current time in Eastern timezone
+    const etOptions = { timeZone: 'America/New_York', hour: 'numeric', minute: 'numeric', weekday: 'short' };
+    const etFormatter = new Intl.DateTimeFormat('en-US', etOptions);
+    const etParts = etFormatter.formatToParts(now);
+
+    const weekday = etParts.find(p => p.type === 'weekday').value;
+    const hour = parseInt(etParts.find(p => p.type === 'hour').value);
+    const minute = parseInt(etParts.find(p => p.type === 'minute').value);
+    const dayPeriod = etParts.find(p => p.type === 'dayPeriod')?.value || '';
+
+    // Convert to 24-hour format
+    let hour24 = hour;
+    if (dayPeriod.toLowerCase() === 'pm' && hour !== 12) hour24 += 12;
+    if (dayPeriod.toLowerCase() === 'am' && hour === 12) hour24 = 0;
+
+    const currentMinutes = hour24 * 60 + minute;
+    const updateTime = 23 * 60 + 25; // 11:25 PM = 23:25
+
+    // Drawing days: Mon, Wed, Sat
+    const isDrawingDay = ['Mon', 'Wed', 'Sat'].includes(weekday);
+
+    // If it's a drawing day and past 11:25 PM ET
+    if (isDrawingDay && currentMinutes >= updateTime) {
+        // Check if we've fetched since 11:25 PM today
+        const todayUpdateTime = new Date(now);
+        todayUpdateTime.setHours(23, 25, 0, 0);
+
+        // Adjust for timezone (rough estimate - this is simplified)
+        const etOffset = -5; // EST (simplified, doesn't account for DST)
+        const localOffset = now.getTimezoneOffset() / 60;
+        const hourDiff = localOffset + etOffset;
+        todayUpdateTime.setHours(todayUpdateTime.getHours() + hourDiff);
+
+        if (lastFetchTime < todayUpdateTime) {
+            console.log('Drawing day, past update time, fetching new data');
+            return true;
+        }
+    }
+
+    // Also fetch if cached data is more than 12 hours old (fallback)
+    const twelveHours = 12 * 60 * 60 * 1000;
+    if (now - lastFetchTime > twelveHours) {
+        console.log('Cache older than 12 hours, fetching new data');
+        return true;
+    }
+
+    console.log('Using cached data');
+    return false;
+}
+
 // Fetch latest drawing from NY State Open Data API
 async function fetchLatestDrawing() {
+    // Check if we should use cached data
+    if (!shouldFetchNewData()) {
+        const cached = localStorage.getItem('powerball_last_drawing');
+        if (cached) {
+            const drawing = JSON.parse(cached);
+            displayDrawing(drawing);
+            checkStoredNumbers(drawing);
+            return;
+        }
+    }
+
     drawingDateEl.classList.add('loading');
     drawingDateEl.textContent = 'Loading...';
 
@@ -204,8 +282,9 @@ async function fetchLatestDrawing() {
             powerball: numbers[5]
         };
 
-        // Cache the drawing
+        // Cache the drawing and fetch time
         localStorage.setItem('powerball_last_drawing', JSON.stringify(drawing));
+        localStorage.setItem('powerball_last_fetch', Date.now().toString());
 
         displayDrawing(drawing);
         checkStoredNumbers(drawing);
@@ -297,6 +376,11 @@ function checkNumbers(userNumbers, drawing) {
             showResult('JACKPOT WINNER!!!', 'winner');
         } else {
             showResult(`Congrats - ${prize}!`, 'winner');
+        }
+
+        // Launch confetti for wins $100 or more
+        if (BIG_WIN_PRIZES.includes(prize) && typeof launchConfetti === 'function') {
+            setTimeout(() => launchConfetti(), 300);
         }
     } else {
         showResult('Try Again', 'loser');
